@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PPSDM Ngudi Rahayu Kendal — Landing</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    :root{
+      --blue:#2196F3;
+      --dark:#0D47A1;
+      --white:#ffffff;
+      --muted:#6b7c93;
+      --radius:12px;
+      --glass: rgba(255,255,255,0.85);
+    }
+    @keyframes fadeInOut {
+  0% {opacity:0; transform:translate(-50%, 20px);}
+  10% {opacity:1; transform:translate(-50%, 0);}
+  90% {opacity:1; transform:translate(-50%, 0);}
+  100% {opacity:0; transform:translate(-50%, 20px);}
+}
+.wa-float-fixed {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 50px;
+  height: 50px;
+  background: #25d366;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  z-index: 9999;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.wa-float-fixed img {
+  width: 26px;
+  height: 26px;
+}
+.wa-float-fixed:hover {
+  transform: scale(1.1);
+}
+    header{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:12px 16px;background:var(--dark);color:#fff;
+      position:fixed;inset:0 0 auto 0;z-index:40;
+    }
+    .brand{display:flex;align-items:center;gap:12px;}
+    .brand img{height:42px;width:42px;border-radius:8px;background:#fff;padding:4px;}
+    .brand h1{font-size:18px;margin:0;font-weight:600;}
+    main{padding:84px 16px 24px;max-width:980px;margin:0 auto;}
+    .card{
+      background:var(--glass);
+      border-radius:12px;
+      padding:16px;
+      box-shadow:0 6px 20px rgba(11,35,77,0.06);
+      margin-bottom:16px;
+      cursor:pointer;
+    }
+    .kepala-section{display:flex;flex-wrap:wrap;align-items:center;gap:20px;}
+    .kepala-section img{width:130px;height:130px;border-radius:50%;object-fit:cover;border:3px solid var(--blue);}
+    .menu-btn img{width:26px;height:26px;object-fit:contain;filter:invert(1);}
+    footer{text-align:center;padding:16px;color:var(--muted);font-size:13px;margin-top:24px;}
+    #fullView{
+      position:fixed;inset:0;background:#fff;z-index:200;
+      display:none;overflow-y:auto;padding:20px;box-sizing:border-box;
+    }
+    #fullContent img{width:100%;max-height:400px;object-fit:cover;border-radius:10px;margin-bottom:16px;}
+    #fullContent h2{margin-top:0;margin-bottom:10px;}
+    #fullContent p{
+      line-height:1.7;
+      white-space: pre-wrap
+      word-wrap: break-word;
+    }
+    #closeFullBtn{
+      padding:10px 16px;border:0;background:#f33;color:#fff;border-radius:8px;
+      cursor:pointer;margin-top:20px;display:block;
+    }
+    #loginPage{
+      display:none;padding:20px;background:#fff;min-height:100vh;
+      max-width:400px;margin:100px auto 0;border-radius:12px;
+      box-shadow:0 6px 20px rgba(0,0,0,0.1);
+    }
+    #loginPage input{width:100%;padding:8px;margin-bottom:10px;}
+    #loginPage button{padding:10px 16px;border:0;background:var(--blue);
+      color:#fff;border-radius:6px;cursor:pointer;width:100%;
+    }
+    #uploadPage{display:none;padding:20px;background:#fff;min-height:100vh;}
+    #newsListHome, #fullContent {
+      font-size:16px;line-height:1.7;word-wrap:break-word;
+    }
+    #newsListHome ul, #fullContent ul{padding-left:20px;margin:5px 0;}
+    #newsListHome ol, #fullContent ol{padding-left:20px;margin:5px 0;}
+    #newsListHome code, #fullContent code{
+      background:#f3f3f3;padding:2px 4px;border-radius:4px;font-family:monospace;
+    }
+    #newsListHome strong, #fullContent strong{font-weight:bold;}
+    #newsListHome em, #fullContent em{font-style:italic;}
+    #newsListHome p, #fullContent p{white-space:pre-wrap;}
+  </style>
+</head>
+<body>
+  <header>
+    <button class="menu-btn" id="menuBtn" style="background:transparent;border:0;position:absolute;right:16px;top:14px;">
+      <img src="menu.png" alt="menu">
+    </button>
+    <div id="toast" style="
+  position:fixed;
+  bottom:20px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#0D47A1;
+  color:white;
+  padding:12px 18px;
+  border-radius:10px;
+  font-size:15px;
+  box-shadow:0 4px 10px rgba(0,0,0,0.2);
+  display:none;
+  z-index:9999;
+  animation:fadeInOut 3s ease;
+  "></div>
+  <div id="deleteModal" style="
+  position:fixed; inset:0;
+  background:rgba(0,0,0,0.45);
+  display:none;
+  justify-content:center;
+  align-items:center;
+  z-index:9999;
+  ">
+  <div style="
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    width:90%;
+    max-width:320px;
+    text-align:center;
+    box-shadow:0 4px 20px rgba(0,0,0,0.2);
+    ">
+    <h3 style="margin-top:0;">Hapus Berita?</h3>
+    <p style="color:#555;margin-bottom:20px;">Apakah kamu yakin ingin menghapus berita ini?</p>
+    <button id="confirmDelete" style="
+    background:#d32f2f;
+    color:white;
+    border:0;
+    padding:10px 14px;
+    border-radius:8px;
+    flex:1;
+    cursor:pointer;
+  ">Hapus</button>
+  <button id="cancelDelete" style="
+    background:#eee;
+    border:0;
+    padding:10px 14px;
+    border-radius:8px;
+    flex:1;
+    cursor:pointer;
+  ">Batal</button>
+  </div>
+</div>
+    <div class="brand">
+      <img src="logo.png" alt="logo">
+      <div>
+        <h1>PPSDM Ngudi Rahayu Kendal</h1>
+        <div style="font-size:12px;opacity:.9">Pembinaan & Pelatihan Sosial</div>
+      </div>
+    </div>
+  </header>
+  <main id="homePage">
+    <div class="card">
+      <h2>Selamat Datang di PPSDM Ngudi Rahayu Kendal</h2>
+      <p>Tempat pembinaan dan pelatihan sosial untuk meningkatkan kesejahteraan masyarakat.</p>
+    </div>
+    <div class="card">
+      <h3>Sambutan Kepala Panti</h3>
+      <div class="kepala-section">
+        <img src="profil.png" alt="Kepala Panti">
+        <small><strong>Assalamu’alaikum warahmatullahi wabarakatuh</strong></small>
+        <small><i>Selamat datang di PPSDM Ngudi Rahayu Kendal. Kami hadir untuk mendampingi saudara-saudari kita yang mengalami disabilitas mental.</i></small>
+      </div>
+      <div id="waAssistive">
+<a href="https://wa.me/6281385654518" target="_blank" class="wa-float-fixed">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WA">
+</a>
+</div>
+    </div>
+    <div id="newsListHome"></div>
+  </main>
+  <section id="loginPage">
+    <h2>Login</h2>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <button id="loginBtn">Login</button>
+  </section>
+  <section id="uploadPage">
+    <h2>Upload Berita</h2>
+    <form id="uploadForm">
+      <label>Tanggal:</label><br>
+      <input type="date" id="newsDate" style="width:100%;padding:8px;margin-top:4px;margin-bottom:10px;"><br>
+      <label>Judul:</label><br>
+      <input type="text" id="newsTitle" placeholder="Judul Berita" style="width:100%;padding:8px;margin-top:4px;margin-bottom:10px;"><br>
+      <label>Font Judul:</label><br>
+      <select id="titleFont" style="width:100%;padding:8px;margin-bottom:10px;">
+        <option value="Arial, sans-serif">Arial</option>
+        <option value="Georgia, serif">Georgia</option>
+        <option value="'Times New Roman', serif">Times New Roman</option>
+        <option value="Verdana, sans-serif">Verdana</option>
+        <option value="'Courier New', monospace">Courier New</option>
+      </select><br>
+      <label>Gambar:</label><br>
+      <input type="file" id="newsImg" accept="image/*" style="margin-top:4px;margin-bottom:10px;"><br>
+      <label>Artikel:</label><br>
+      <textarea id="newsText" rows="8" placeholder="Isi artikel" style="width:100%;padding:8px;margin-top:4px;margin-bottom:10px;"></textarea><br>
+      <label>Font Artikel:</label><br>
+      <select id="articleFont" style="width:100%;padding:8px;margin-bottom:10px;">
+        <option value="Arial, sans-serif">Arial</option>
+        <option value="Georgia, serif">Georgia</option>
+        <option value="'Times New Roman', serif">Times New Roman</option>
+        <option value="Verdana, sans-serif">Verdana</option>
+        <option value="'Courier New', monospace">Courier New</option>
+      </select><br>
+      <button type="submit" id="saveNews" style="padding:10px 16px;background:#007bff;color:#fff;border-radius:6px;border:0;">Upload</button>
+    </form>
+  </section>
+  <div id="fullView">
+    <div id="fullContent"></div>
+    <button id="closeFullBtn" onclick="closeFull()">Tutup</button>
+  </div>
+  <aside id="drawer" style="position:fixed;right:0;top:0;height:100%;width:260px;background:#fff;box-shadow:-6px 0 18px rgba(0,0,0,0.15);transform:translateX(110%);transition:.25s;padding:20px;z-index:50;">
+    <h3>Navigasi</h3>
+    <nav style="display:flex;flex-direction:column;gap:10px;margin-top:10px;">
+    </nav>
+  </aside>
+  <div id="overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.45);backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:.25s;z-index:40;"></div>
+  <footer>© <span id="year"></span> PPSDM Ngudi Rahayu Kendal</footer>
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+    document.getElementById('newsDate').value = new Date().toISOString().split('T')[0];
+    const drawer = document.getElementById('drawer');
+    const overlay = document.getElementById('overlay');
+    const menuBtn = document.getElementById('menuBtn');
+    const homePage = document.getElementById('homePage');
+    const uploadPage = document.getElementById('uploadPage');
+    const loginPage = document.getElementById('loginPage');
+    const DUMMY_USER = {username:"admin", password:"123456"};
+    menuBtn.onclick = ()=>openDrawer();
+    overlay.onclick = ()=>closeDrawer();
+    function openDrawer() {
+      drawer.style.transform = 'translateX(0)';
+      overlay.style.opacity = '1';
+      overlay.style.pointerEvents = 'auto';
+      updateDrawerAuth();
+    }
+    function closeDrawer(){
+      drawer.style.transform='translateX(110%)';
+      overlay.style.opacity='0';
+      overlay.style.pointerEvents='none';
+    }
+    function updateDrawerAuth() {
+      const nav = drawer.querySelector('nav');
+      nav.innerHTML = '';
+let homeBtn = document.createElement('button');
+homeBtn.textContent = 'Beranda';
+homeBtn.style.cssText = 'padding:10px;border:0;background:#eee;border-radius:8px;';
+homeBtn.onclick = ()=>{
+  showHome();
+  closeDrawer();
+};
+nav.appendChild(homeBtn);
+      let uploadBtn = document.createElement('button');
+      uploadBtn.textContent = 'Upload Berita';
+      uploadBtn.style.cssText = 'padding:10px;border:0;background:#eee;border-radius:8px;';
+      uploadBtn.onclick = checkLoginForUpload;
+      nav.appendChild(uploadBtn);
+      if(localStorage.getItem('isLoggedIn')==='true'){
+        let logoutBtn = document.createElement('button');
+        logoutBtn.textContent = 'Logout';
+        logoutBtn.style.cssText = 'padding:10px;border:0;background:#eee;border-radius:8px;margin-top:5px;';
+        logoutBtn.onclick = ()=>{
+          logout();
+          closeDrawer();
+          showToast('Berhasil logout!');
+        };
+        nav.appendChild(logoutBtn);
+      }
+    }
+    function showLogin(){
+      loginPage.style.display='block';
+      homePage.style.display='none';
+      uploadPage.style.display='none';
+      closeDrawer();
+    }
+    function logout(){
+      localStorage.setItem('isLoggedIn','false');
+      showHome();
+      renderNews();
+    }
+    function checkLoginForUpload(){
+      if(localStorage.getItem('isLoggedIn')==='true'){
+        showUploadPage();
+      }else{
+        showToast('Anda harus login terlebih dahulu!');
+        showLogin();
+      }
+    }
+    function showUploadPage(){homePage.style.display='none';uploadPage.style.display='block';loginPage.style.display='none';closeDrawer();}
+    function showHome(){homePage.style.display='block';uploadPage.style.display='none';loginPage.style.display='none';}
+    document.getElementById('loginBtn').onclick = ()=>{
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+      if(username===DUMMY_USER.username && password===DUMMY_USER.password){
+        localStorage.setItem('isLoggedIn','true');
+        showToast('Login berhasil!');
+        showHome();
+        renderNews();
+      }else{
+        showToast('Username atau password salah!');
+      }
+    }
+    function linkify(text){
+      const urlPattern = /(https?:\/\/[^\s]+)/g;
+      return text.replace(urlPattern, '<a href="$1" target="_blank" style="color:blue;">$1</a>');
+    }
+    function saveNewsDefault(e){
+      e.preventDefault();
+      if(localStorage.getItem('isLoggedIn')!=='true'){showToast('Anda harus login untuk mengunggah berita!'); return;}
+      let title = document.getElementById('newsTitle').value.trim();
+      let text = document.getElementById('newsText').value.trim();
+      let date = document.getElementById('newsDate').value;
+      let titleFont = document.getElementById('titleFont').value;
+      let articleFont = document.getElementById('articleFont').value;
+      let imgFile = document.getElementById('newsImg').files[0];
+      if(!title || !text || !date || !imgFile){showToast('Lengkapi semua kolom termasuk gambar');return;}
+      let news = JSON.parse(localStorage.getItem('newsList') || '[]');
+      if(news.length >= 10){showToast('Maksimal 10 berita! Hapus beberapa berita jika ingin menambahkan.'); return;}
+      let reader = new FileReader();
+      reader.onload = function(evt){
+        news.push({date,title,text,titleFont,articleFont,img: evt.target.result});
+        localStorage.setItem('newsList', JSON.stringify(news));
+        renderNews();
+        showHome();
+        resetUploadForm();
+        showToast('Berita berhasil ditambahkan!');
+      }
+      reader.readAsDataURL(imgFile);
+    }
+    document.getElementById('saveNews').onclick = saveNewsDefault;
+    function resetUploadForm(){
+      document.getElementById('newsTitle').value='';
+      document.getElementById('newsText').value='';
+      document.getElementById('newsDate').value=new Date().toISOString().split('T')[0];
+      document.getElementById('newsImg').value='';
+      document.getElementById('saveNews').onclick = saveNewsDefault;
+    }
+    function renderNews(){
+      let box = document.getElementById('newsListHome');
+      let data = JSON.parse(localStorage.getItem('newsList') || '[]');
+      box.innerHTML='';
+      data.slice().reverse().forEach((n,index)=>{
+        let div = document.createElement('div');
+        div.className='card';
+        div.innerHTML=`
+  <img src="${n.img}" style="width:100%;border-radius:8px;max-height:200px;object-fit:cover;margin-bottom:10px;">
+  <small style="color:#555;">${n.date}</small>
+  <h3 style="font-family:${n.titleFont}">${n.title}</h3>
+  <div style="font-family:${n.articleFont}">${marked.parse(linkify(n.text.substring(0,150)) + '...')}</div>
+`;
+        if(localStorage.getItem('isLoggedIn')==='true'){
+          let btnContainer = document.createElement('div');
+          btnContainer.style.marginTop = '10px';
+          btnContainer.innerHTML = `
+            <button style="padding:5px 10px;margin-right:5px;" onclick="editNews(${index})">Edit</button>
+            <button style="padding:5px 10px;" onclick="deleteNews(${index})">Hapus</button>
+          `;
+          div.appendChild(btnContainer);
+        }
+        div.onclick = ()=>openFull(n);
+        box.appendChild(div);
+      });
+    }
+
+    function deleteNews(i){
+  openDeleteModal(i);
+      }
+
+    function editNews(i){
+      let news = JSON.parse(localStorage.getItem('newsList') || '[]');
+      let n = news[i];
+      showUploadPage();
+      document.getElementById('newsTitle').value = n.title;
+      document.getElementById('newsText').value = n.text;
+      document.getElementById('newsDate').value = n.date;
+      document.getElementById('titleFont').value = n.titleFont;
+      document.getElementById('articleFont').value = n.articleFont;
+
+      document.getElementById('saveNews').onclick = function(e){
+        e.preventDefault();
+        let updatedTitle = document.getElementById('newsTitle').value.trim();
+        let updatedText = document.getElementById('newsText').value.trim();
+        let updatedDate = document.getElementById('newsDate').value;
+        let updatedTitleFont = document.getElementById('titleFont').value;
+        let updatedArticleFont = document.getElementById('articleFont').value;
+        let imgFile = document.getElementById('newsImg').files[0];
+
+        if(!updatedTitle || !updatedText || !updatedDate){showToast('Lengkapi semua kolom'); return;}
+        if(imgFile){
+          let reader = new FileReader();
+          reader.onload = function(evt){
+            n.title = updatedTitle;
+            n.text = updatedText;
+            n.date = updatedDate;
+            n.titleFont = updatedTitleFont;
+            n.articleFont = updatedArticleFont;
+            n.img = evt.target.result;
+            news[i] = n;
+            localStorage.setItem('newsList', JSON.stringify(news));
+            renderNews();
+            showHome();
+            resetUploadForm();
+          }
+          reader.readAsDataURL(imgFile);
+        }else{
+          n.title = updatedTitle;
+          n.text = updatedText;
+          n.date = updatedDate;
+          n.titleFont = updatedTitleFont;
+          n.articleFont = updatedArticleFont;
+          news[i] = n;
+          localStorage.setItem('newsList', JSON.stringify(news));
+          renderNews();
+          showHome();
+          resetUploadForm();
+        }
+      }
+    }
+
+    function openFull(n){
+      document.getElementById('fullContent').innerHTML=`
+  <img src="${n.img}">
+  <small style="color:#666;">${n.date}</small>
+  <h2 style="font-family:${n.titleFont}">${n.title}</h2>
+  <p style="font-family:${n.articleFont}">${marked.parse(linkify(n.text))}</p>
+`;
+      document.getElementById('fullView').style.display='block';
+    }
+
+    function closeFull(){document.getElementById('fullView').style.display='none';}
+
+    renderNews();
+    
+    function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = "block";
+  setTimeout(()=>{ t.style.display = "none"; }, 3000);
+  }
+  let deleteIndex = null;
+
+function openDeleteModal(i){
+  deleteIndex = i;
+  document.getElementById('deleteModal').style.display = 'flex';
+}
+
+document.getElementById('cancelDelete').onclick = function(){
+  document.getElementById('deleteModal').style.display = 'none';
+};
+document.getElementById('confirmDelete').onclick = function(){
+  let news = JSON.parse(localStorage.getItem('newsList') || '[]');
+  news.splice(deleteIndex, 1);
+  localStorage.setItem('newsList', JSON.stringify(news));
+  renderNews();
+  document.getElementById('deleteModal').style.display = 'none';
+  showToast("Berita berhasil dihapus!");
+  };
+  </script>
+</body>
+</html>
