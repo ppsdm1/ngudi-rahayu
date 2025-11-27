@@ -235,245 +235,294 @@
   </aside>
   <div id="overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.45);backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:.25s;z-index:40;"></div>
   <footer>© <span id="year"></span> PPSDM Ngudi Rahayu Kendal</footer>
-  <script>
-    document.getElementById('year').textContent = new Date().getFullYear();
-    document.getElementById('newsDate').value = new Date().toISOString().split('T')[0];
-    const drawer = document.getElementById('drawer');
-    const overlay = document.getElementById('overlay');
-    const menuBtn = document.getElementById('menuBtn');
-    const homePage = document.getElementById('homePage');
-    const uploadPage = document.getElementById('uploadPage');
-    const loginPage = document.getElementById('loginPage');
-    const DUMMY_USER = {username:"admin", password:"123456"};
-    menuBtn.onclick = ()=>openDrawer();
-    overlay.onclick = ()=>closeDrawer();
-    function openDrawer() {
-      drawer.style.transform = 'translateX(0)';
-      overlay.style.opacity = '1';
-      overlay.style.pointerEvents = 'auto';
-      updateDrawerAuth();
-    }
-    function closeDrawer(){
-      drawer.style.transform='translateX(110%)';
-      overlay.style.opacity='0';
-      overlay.style.pointerEvents='none';
-    }
-    function updateDrawerAuth() {
-      const nav = drawer.querySelector('nav');
-      nav.innerHTML = '';
-let homeBtn = document.createElement('button');
-homeBtn.textContent = 'Beranda';
-homeBtn.style.cssText = 'padding:10px;border:0;background:#eee;border-radius:8px;';
-homeBtn.onclick = ()=>{
-  showHome();
-  closeDrawer();
+  
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+<script>
+/* Firebase configuration (you already provided these) */
+const firebaseConfig = {
+  apiKey: "AIzaSyBV3QSfYA6T9xf7JwAnqQGNNHQDfYgvpVM",
+  authDomain: "ppsdm-ngudi-rahayu.firebaseapp.com",
+  databaseURL: "https://ppsdm-ngudi-rahayu-default-rtdb.firebaseio.com",
+  projectId: "ppsdm-ngudi-rahayu",
+  storageBucket: "ppsdm-ngudi-rahayu.firebasestorage.app",
+  messagingSenderId: "347136877068",
+  appId: "1:347136877068:web:59be72ed959cd7529b8429"
 };
-nav.appendChild(homeBtn);
-      let uploadBtn = document.createElement('button');
-      uploadBtn.textContent = 'Upload Berita';
-      uploadBtn.style.cssText = 'padding:10px;border:0;background:#eee;border-radius:8px;';
-      uploadBtn.onclick = checkLoginForUpload;
-      nav.appendChild(uploadBtn);
-      if(localStorage.getItem('isLoggedIn')==='true'){
-        let logoutBtn = document.createElement('button');
-        logoutBtn.textContent = 'Logout';
-        logoutBtn.style.cssText = 'padding:10px;border:0;background:#eee;border-radius:8px;margin-top:5px;';
-        logoutBtn.onclick = ()=>{
-          logout();
-          closeDrawer();
-          showToast('Berhasil logout!');
-        };
-        nav.appendChild(logoutBtn);
-      }
-    }
-    function showLogin(){
-      loginPage.style.display='block';
-      homePage.style.display='none';
-      uploadPage.style.display='none';
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+/* --- UI / app behavior (kept same look & flow) --- */
+document.getElementById('year').textContent = new Date().getFullYear();
+document.getElementById('newsDate').value = new Date().toISOString().split('T')[0];
+const drawer = document.getElementById('drawer');
+const overlay = document.getElementById('overlay');
+const menuBtn = document.getElementById('menuBtn');
+const homePage = document.getElementById('homePage');
+const uploadPage = document.getElementById('uploadPage');
+const loginPage = document.getElementById('loginPage');
+const DUMMY_USER = {username:"admin", password:"123456"};
+menuBtn.onclick = ()=>openDrawer();
+overlay.onclick = ()=>closeDrawer();
+function openDrawer() {
+  drawer.style.transform = 'translateX(0)';
+  overlay.style.opacity = '1';
+  overlay.style.pointerEvents = 'auto';
+  updateDrawerAuth();
+}
+function closeDrawer(){
+  drawer.style.transform='translateX(110%)';
+  overlay.style.opacity='0';
+  overlay.style.pointerEvents='none';
+}
+function updateDrawerAuth() {
+  const nav = drawer.querySelector('nav');
+  nav.innerHTML = '';
+  let homeBtn = document.createElement('button');
+  homeBtn.textContent = 'Beranda';
+  homeBtn.style.cssText = 'padding:10px;border:0;background:#eee;border-radius:8px;';
+  homeBtn.onclick = ()=>{
+    showHome();
+    closeDrawer();
+  };
+  nav.appendChild(homeBtn);
+  let uploadBtn = document.createElement('button');
+  uploadBtn.textContent = 'Upload Berita';
+  uploadBtn.style.cssText = 'padding:10px;border:0;background:#eee;border-radius:8px;';
+  uploadBtn.onclick = checkLoginForUpload;
+  nav.appendChild(uploadBtn);
+  if(localStorage.getItem('isLoggedIn')==='true'){
+    let logoutBtn = document.createElement('button');
+    logoutBtn.textContent = 'Logout';
+    logoutBtn.style.cssText = 'padding:10px;border:0;background:#eee;border-radius:8px;margin-top:5px;';
+    logoutBtn.onclick = ()=>{
+      logout();
       closeDrawer();
-    }
-    function logout(){
-      localStorage.setItem('isLoggedIn','false');
-      showHome();
-      renderNews();
-    }
-    function checkLoginForUpload(){
-      if(localStorage.getItem('isLoggedIn')==='true'){
-        showUploadPage();
-      }else{
-        showToast('Anda harus login terlebih dahulu!');
-        showLogin();
-      }
-    }
-    function showUploadPage(){homePage.style.display='none';uploadPage.style.display='block';loginPage.style.display='none';closeDrawer();}
-    function showHome(){homePage.style.display='block';uploadPage.style.display='none';loginPage.style.display='none';}
-    document.getElementById('loginBtn').onclick = ()=>{
-      const username = document.getElementById('username').value.trim();
-      const password = document.getElementById('password').value.trim();
-      if(username===DUMMY_USER.username && password===DUMMY_USER.password){
-        localStorage.setItem('isLoggedIn','true');
-        showToast('Login berhasil!');
-        showHome();
-        renderNews();
-      }else{
-        showToast('Username atau password salah!');
-      }
-    }
-    function linkify(text){
-      const urlPattern = /(https?:\/\/[^\s]+)/g;
-      return text.replace(urlPattern, '<a href="$1" target="_blank" style="color:blue;">$1</a>');
-    }
-    function saveNewsDefault(e){
-      e.preventDefault();
-      if(localStorage.getItem('isLoggedIn')!=='true'){showToast('Anda harus login untuk mengunggah berita!'); return;}
-      let title = document.getElementById('newsTitle').value.trim();
-      let text = document.getElementById('newsText').value.trim();
-      let date = document.getElementById('newsDate').value;
-      let titleFont = document.getElementById('titleFont').value;
-      let articleFont = document.getElementById('articleFont').value;
-      let imgFile = document.getElementById('newsImg').files[0];
-      if(!title || !text || !date || !imgFile){showToast('Lengkapi semua kolom termasuk gambar');return;}
-      let news = JSON.parse(localStorage.getItem('newsList') || '[]');
-      if(news.length >= 10){showToast('Maksimal 10 berita! Hapus beberapa berita jika ingin menambahkan.'); return;}
+      showToast('Berhasil logout!');
+    };
+    nav.appendChild(logoutBtn);
+  }
+}
+function showLogin(){
+  loginPage.style.display='block';
+  homePage.style.display='none';
+  uploadPage.style.display='none';
+  closeDrawer();
+}
+function logout(){
+  localStorage.setItem('isLoggedIn','false');
+  showHome();
+  renderNews();
+}
+function checkLoginForUpload(){
+  if(localStorage.getItem('isLoggedIn')==='true'){
+    showUploadPage();
+  }else{
+    showToast('Anda harus login terlebih dahulu!');
+    showLogin();
+  }
+}
+function showUploadPage(){homePage.style.display='none';uploadPage.style.display='block';loginPage.style.display='none';closeDrawer();}
+function showHome(){homePage.style.display='block';uploadPage.style.display='none';loginPage.style.display='none';}
+document.getElementById('loginBtn').onclick = ()=>{
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value.trim();
+  if(username===DUMMY_USER.username && password===DUMMY_USER.password){
+    localStorage.setItem('isLoggedIn','true');
+    showToast('Login berhasil!');
+    showHome();
+    renderNews();
+  }else{
+    showToast('Username atau password salah!');
+  }
+}
+function linkify(text){
+  const urlPattern = /(https?:\/\/[^\s]+)/g;
+  return text.replace(urlPattern, '<a href="$1" target="_blank" style="color:blue;">$1</a>');
+}
+
+/* --- Firebase-backed functions --- */
+let editKey = null;
+let deleteKey = null;
+let latestNewsArray = []; // array of {key, data} in reverse order for rendering
+
+function saveNewsDefault(e){
+  e.preventDefault();
+  if(localStorage.getItem('isLoggedIn')!=='true'){showToast('Anda harus login untuk mengunggah berita!'); return;}
+  let title = document.getElementById('newsTitle').value.trim();
+  let text = document.getElementById('newsText').value.trim();
+  let date = document.getElementById('newsDate').value;
+  let titleFont = document.getElementById('titleFont').value;
+  let articleFont = document.getElementById('articleFont').value;
+  let imgFile = document.getElementById('newsImg').files[0];
+  if(!title || !text || !date){showToast('Lengkapi semua kolom termasuk gambar');return;}
+
+  // If editing existing news
+  if(editKey){
+    // Update existing item
+    if(imgFile){
       let reader = new FileReader();
       reader.onload = function(evt){
-        news.push({date,title,text,titleFont,articleFont,img: evt.target.result});
-        localStorage.setItem('newsList', JSON.stringify(news));
-        renderNews();
-        showHome();
-        resetUploadForm();
-        showToast('Berita berhasil ditambahkan!');
+        const updated = {date,title,text,titleFont,articleFont,img: evt.target.result};
+        db.ref('news/' + editKey).update(updated).then(()=>{
+          showToast('Berita berhasil diupdate!');
+          resetUploadForm();
+          showHome();
+          editKey = null;
+        }).catch(()=>showToast('Gagal update berita!'));
       }
       reader.readAsDataURL(imgFile);
+    } else {
+      const updated = {date,title,text,titleFont,articleFont};
+      db.ref('news/' + editKey).update(updated).then(()=>{
+        showToast('Berita berhasil diupdate!');
+        resetUploadForm();
+        showHome();
+        editKey = null;
+      }).catch(()=>showToast('Gagal update berita!'));
     }
-    document.getElementById('saveNews').onclick = saveNewsDefault;
-    function resetUploadForm(){
-      document.getElementById('newsTitle').value='';
-      document.getElementById('newsText').value='';
-      document.getElementById('newsDate').value=new Date().toISOString().split('T')[0];
-      document.getElementById('newsImg').value='';
-      document.getElementById('saveNews').onclick = saveNewsDefault;
-    }
-    function renderNews(){
-      let box = document.getElementById('newsListHome');
-      let data = JSON.parse(localStorage.getItem('newsList') || '[]');
-      box.innerHTML='';
-      data.slice().reverse().forEach((n,index)=>{
-        let div = document.createElement('div');
-        div.className='card';
-        div.innerHTML=`
-  <img src="${n.img}" style="width:100%;border-radius:8px;max-height:200px;object-fit:cover;margin-bottom:10px;">
-  <small style="color:#555;">${n.date}</small>
-  <h3 style="font-family:${n.titleFont}">${n.title}</h3>
-  <div style="font-family:${n.articleFont}">${marked.parse(linkify(n.text.substring(0,150)) + '...')}</div>
-`;
-        if(localStorage.getItem('isLoggedIn')==='true'){
-          let btnContainer = document.createElement('div');
-          btnContainer.style.marginTop = '10px';
-          btnContainer.innerHTML = `
-            <button style="padding:5px 10px;margin-right:5px;" onclick="editNews(${index})">Edit</button>
-            <button style="padding:5px 10px;" onclick="deleteNews(${index})">Hapus</button>
-          `;
-          div.appendChild(btnContainer);
-        }
-        div.onclick = ()=>openFull(n);
-        box.appendChild(div);
-      });
-    }
+    return;
+  }
 
-    function deleteNews(i){
-  openDeleteModal(i);
+  // New item push
+  if(!imgFile){showToast('Lengkapi semua kolom termasuk gambar');return;}
+  let reader = new FileReader();
+  reader.onload = function(evt){
+    const newsData = {date,title,text,titleFont,articleFont,img: evt.target.result, createdAt: firebase.database.ServerValue.TIMESTAMP};
+    const newRef = db.ref('news').push();
+    newRef.set(newsData).then(()=>{
+      showToast('Berita berhasil ditambahkan!');
+      resetUploadForm();
+      showHome();
+    }).catch(()=>showToast('Gagal menambahkan berita!'));
+  }
+  reader.readAsDataURL(imgFile);
+}
+document.getElementById('saveNews').onclick = saveNewsDefault;
+
+function resetUploadForm(){
+  document.getElementById('newsTitle').value='';
+  document.getElementById('newsText').value='';
+  document.getElementById('newsDate').value=new Date().toISOString().split('T')[0];
+  document.getElementById('newsImg').value='';
+  document.getElementById('saveNews').onclick = saveNewsDefault;
+  editKey = null;
+}
+
+/* Render news from Firebase in real-time */
+function renderNews(){
+  const box = document.getElementById('newsListHome');
+  box.innerHTML = '';
+  db.ref('news').orderByChild('createdAt').on('value', function(snapshot){
+    box.innerHTML = '';
+    latestNewsArray = [];
+    const val = snapshot.val();
+    if(!val) return;
+    // Convert to array of {key, data}, sort by createdAt descending
+    const arr = Object.keys(val).map(k => ({key: k, data: val[k]}));
+    arr.sort((a,b)=> (b.data.createdAt||0) - (a.data.createdAt||0));
+    latestNewsArray = arr;
+    arr.forEach(item=>{
+      const n = item.data;
+      const key = item.key;
+      let div = document.createElement('div');
+      div.className='card';
+      div.innerHTML=`
+        <img src="${n.img}" style="width:100%;border-radius:8px;max-height:200px;object-fit:cover;margin-bottom:10px;">
+        <small style="color:#555;">${n.date}</small>
+        <h3 style="font-family:${n.titleFont}">${n.title}</h3>
+        <div style="font-family:${n.articleFont}">${marked.parse(linkify(n.text.substring(0,150)) + '...')}</div>
+      `;
+      // admin buttons
+      if(localStorage.getItem('isLoggedIn')==='true'){
+        let btnContainer = document.createElement('div');
+        btnContainer.style.marginTop = '10px';
+        let editBtn = document.createElement('button');
+        editBtn.style.cssText = 'padding:5px 10px;margin-right:5px;';
+        editBtn.textContent = 'Edit';
+        editBtn.onclick = function(evt){
+          evt.stopPropagation();
+          editNews(key);
+        };
+        let delBtn = document.createElement('button');
+        delBtn.style.cssText = 'padding:5px 10px;';
+        delBtn.textContent = 'Hapus';
+        delBtn.onclick = function(evt){
+          evt.stopPropagation();
+          deleteNews(key);
+        };
+        btnContainer.appendChild(editBtn);
+        btnContainer.appendChild(delBtn);
+        div.appendChild(btnContainer);
       }
+      div.onclick = ()=>openFull(n);
+      box.appendChild(div);
+    });
+  });
+}
 
-    function editNews(i){
-      let news = JSON.parse(localStorage.getItem('newsList') || '[]');
-      let n = news[i];
-      showUploadPage();
-      document.getElementById('newsTitle').value = n.title;
-      document.getElementById('newsText').value = n.text;
-      document.getElementById('newsDate').value = n.date;
-      document.getElementById('titleFont').value = n.titleFont;
-      document.getElementById('articleFont').value = n.articleFont;
+function deleteNews(key){
+  openDeleteModal(key);
+}
 
-      document.getElementById('saveNews').onclick = function(e){
-        e.preventDefault();
-        let updatedTitle = document.getElementById('newsTitle').value.trim();
-        let updatedText = document.getElementById('newsText').value.trim();
-        let updatedDate = document.getElementById('newsDate').value;
-        let updatedTitleFont = document.getElementById('titleFont').value;
-        let updatedArticleFont = document.getElementById('articleFont').value;
-        let imgFile = document.getElementById('newsImg').files[0];
+function editNews(key){
+  db.ref('news/' + key).once('value').then(snap=>{
+    const n = snap.val();
+    if(!n) { showToast('Berita tidak ditemukan'); return; }
+    showUploadPage();
+    document.getElementById('newsTitle').value = n.title || '';
+    document.getElementById('newsText').value = n.text || '';
+    document.getElementById('newsDate').value = n.date || new Date().toISOString().split('T')[0];
+    document.getElementById('titleFont').value = n.titleFont || 'Arial, sans-serif';
+    document.getElementById('articleFont').value = n.articleFont || 'Arial, sans-serif';
+    editKey = key;
+    // keep saveNewsDefault as handler; it checks editKey to perform update
+  }).catch(()=>showToast('Gagal mengambil data berita'));
+}
 
-        if(!updatedTitle || !updatedText || !updatedDate){showToast('Lengkapi semua kolom'); return;}
-        if(imgFile){
-          let reader = new FileReader();
-          reader.onload = function(evt){
-            n.title = updatedTitle;
-            n.text = updatedText;
-            n.date = updatedDate;
-            n.titleFont = updatedTitleFont;
-            n.articleFont = updatedArticleFont;
-            n.img = evt.target.result;
-            news[i] = n;
-            localStorage.setItem('newsList', JSON.stringify(news));
-            renderNews();
-            showHome();
-            resetUploadForm();
-          }
-          reader.readAsDataURL(imgFile);
-        }else{
-          n.title = updatedTitle;
-          n.text = updatedText;
-          n.date = updatedDate;
-          n.titleFont = updatedTitleFont;
-          n.articleFont = updatedArticleFont;
-          news[i] = n;
-          localStorage.setItem('newsList', JSON.stringify(news));
-          renderNews();
-          showHome();
-          resetUploadForm();
-        }
-      }
-    }
+function openFull(n){
+  document.getElementById('fullContent').innerHTML=`
+    <img src="${n.img}">
+    <small style="color:#666;">${n.date}</small>
+    <h2 style="font-family:${n.titleFont}">${n.title}</h2>
+    <p style="font-family:${n.articleFont}">${marked.parse(linkify(n.text))}</p>
+  `;
+  document.getElementById('fullView').style.display='block';
+}
 
-    function openFull(n){
-      document.getElementById('fullContent').innerHTML=`
-  <img src="${n.img}">
-  <small style="color:#666;">${n.date}</small>
-  <h2 style="font-family:${n.titleFont}">${n.title}</h2>
-  <p style="font-family:${n.articleFont}">${marked.parse(linkify(n.text))}</p>
-`;
-      document.getElementById('fullView').style.display='block';
-    }
+function closeFull(){document.getElementById('fullView').style.display='none';}
 
-    function closeFull(){document.getElementById('fullView').style.display='none';}
+renderNews();
 
-    renderNews();
-    
-    function showToast(msg){
+function showToast(msg){
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.style.display = "block";
   setTimeout(()=>{ t.style.display = "none"; }, 3000);
-  }
-  let deleteIndex = null;
-
-function openDeleteModal(i){
-  deleteIndex = i;
-  document.getElementById('deleteModal').style.display = 'flex';
 }
 
+/* Delete modal handling */
+function openDeleteModal(key){
+  deleteKey = key;
+  document.getElementById('deleteModal').style.display = 'flex';
+}
 document.getElementById('cancelDelete').onclick = function(){
   document.getElementById('deleteModal').style.display = 'none';
 };
 document.getElementById('confirmDelete').onclick = function(){
-  let news = JSON.parse(localStorage.getItem('newsList') || '[]');
-  news.splice(deleteIndex, 1);
-  localStorage.setItem('newsList', JSON.stringify(news));
-  renderNews();
-  document.getElementById('deleteModal').style.display = 'none';
-  showToast("Berita berhasil dihapus!");
-  };
-  </script>
+  if(!deleteKey){ showToast('Tidak ada berita terpilih'); document.getElementById('deleteModal').style.display = 'none'; return; }
+  db.ref('news/' + deleteKey).remove().then(()=>{
+    renderNews(); // will refresh due to on('value'), but call to be safe
+    document.getElementById('deleteModal').style.display = 'none';
+    showToast("Berita berhasil dihapus!");
+    deleteKey = null;
+  }).catch(()=>{
+    showToast('Gagal menghapus berita');
+  });
+};
+</script>
+
 </body>
 </html>
