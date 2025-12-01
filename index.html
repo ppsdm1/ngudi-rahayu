@@ -189,7 +189,17 @@ body {
   <div style="width:100%; margin-top:20px;">
     <img src="ppsdm.jpg" alt="Gedung PPSDM Ngudi Rahayu Kendal" style="width:100%; height:auto; border-radius:10px;">
   </div>
-  <!-- Judul Medsos -->
+  
+<h3 style="margin-top:20px;font-weight:700;color:#0D47A1;">
+  Lokasi Pelayanan Kami
+</h3>
+<iframe 
+  src="https://www.google.com/maps?q=PPSDM+Ngudi+Rahayu+Kendal+Salamsari+Boja+Kendal&output=embed"
+  style="width:100%;height:300px;border:0;border-radius:10px;margin-top:10px;"
+  loading="lazy"
+  allowfullscreen>
+</iframe>
+<!-- Judul Medsos -->
 <div style="
   text-align:center;
   margin-top:15px;
@@ -571,18 +581,7 @@ function openFull(n){
     <h2 style="font-family:${n.titleFont}">${n.title}</h2>
     <p style="font-family:${n.articleFont}">${marked.parse(linkify(n.text))}</p>
 
-<!-- MAP GOOGLE PPSDM NGUDI RAHAYU KENDAL -->
-<div class="map-container" style="margin-top:20px;">
-  <iframe
-    src="https://www.google.com/maps?q=PPSDM+Ngudi+Rahayu+Kendal+Salamsari+Boja+Kendal&output=embed"
-    allowfullscreen
-    loading="lazy"
-    referrerpolicy="no-referrer-when-downgrade"
-    style="width:100%; height:350px; border:0; border-radius:10px;">
-  </iframe>
-</div>
-
-  `;
+`;
   document.getElementById('fullView').style.display='block';
 }
 
